@@ -73,10 +73,10 @@ export const Landing = () => {
       >
         <div className="grid gap-5 sm:grid-cols-3">
           <div>
-            <Label htmlFor="firstName">Prenom</Label>
+            <Label htmlFor="firstName">Prénom</Label>
             <Input
               id="firstName"
-              placeholder="Prenom"
+              placeholder="Prénom"
               value={form.firstName}
               onChange={(event: ChangeEvent<HTMLInputElement>) =>
                 setForm((prev) => ({ ...prev, firstName: event.target.value }))
