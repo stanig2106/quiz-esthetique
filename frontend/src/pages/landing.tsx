@@ -112,11 +112,7 @@ export const Landing = () => {
           <Badge variant="secondary">Chargement des questions...</Badge>
         ) : error ? (
           <Badge variant="destructive">{error}</Badge>
-        ) : (
-          <Badge variant="secondary">
-            {questions.length} questions prêtes
-          </Badge>
-        )}
+        ) : null}
 
         <div className="flex flex-wrap items-center gap-4">
           <Button
