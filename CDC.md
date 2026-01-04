@@ -22,10 +22,12 @@ Les réponses et statistiques doivent être accessibles dans un espace administr
   - Puis bouton “Suivant”
 - Fin de quiz
   - Affichage du score final (ex : “4 / 5”)
+  - Affichage du temps total (mm:ss)
   - Récapitulatif des réponses (bonne réponse + réponse donnée)
   - Boutons :
     - “Partager mon score” (via image)
     - “Télécharger l’image”
+    - “Voir le leaderboard”
 - Reprise / persistance
   - Le quiz doit être sauvegardé automatiquement (local storage)
   - Si la personne revient et a déjà un score, redirection vers /result
@@ -41,14 +43,22 @@ Les réponses et statistiques doivent être accessibles dans un espace administr
   - Voir le nombre total de réponses
   - Voir la liste détaillée des réponses (nom, prénom, email, score, détail)
   - Supprimer une tentative (bouton “Supprimer”)
+  - Voir le temps de chaque réponse
 - Statistiques globales
   - Moyenne, médiane, min, max
   - Distribution des scores (ex : “4/5 : 12”)
+  - Temps moyen
+
+### 2.3. Leaderboard public
+- Accessible aux participants après avoir répondu
+- Classement par score décroissant puis temps croissant
+- Affiche : rang, prénom/nom, score, temps
 
 ## 3) Contraintes
 - Responsive : mobile en priorité
 - Design : inspiré des visuels fournis (pastel, playful, encadrés, typo arrondie)
 - Partage : image du score (format mobile vertical)
+  - L’image inclut le score et le temps total
 - Unicité : une tentative par email (la dernière remplace l’ancienne)
 - Déploiement : via docker-compose, front exposé, API interne
 
@@ -57,6 +67,7 @@ Les réponses et statistiques doivent être accessibles dans un espace administr
 - `/rules` Règles
 - `/quiz` Quiz question par question
 - `/result` Résultat final + partage
+- `/leaderboard` Classement public
 - `/admin` Espace administrateur
 
 ## 5) Livrables attendus

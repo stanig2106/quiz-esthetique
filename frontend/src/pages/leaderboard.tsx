@@ -58,9 +58,6 @@ export const Leaderboard = () => {
                     <p className="font-semibold text-slate-900">
                       {attempt.userFirstName} {attempt.userLastName}
                     </p>
-                    <p className="text-sm text-slate-600">
-                      {attempt.userEmail}
-                    </p>
                   </div>
                   <div className="ml-auto flex flex-wrap items-center gap-3">
                     <Badge variant="secondary">
