@@ -1,0 +1,12 @@
+services:
+  api:
+    build: ./backend
+    volumes:
+      - qcm-data:/data
+  web:
+    build: ./frontend
+    depends_on:
+      - api
+
+volumes:
+  qcm-data:
