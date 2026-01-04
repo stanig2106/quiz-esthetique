@@ -332,9 +332,9 @@ export const Admin = () => {
               {questions.map((question) => (
                 <div
                   key={question.id}
-                  className="rounded-2xl border-2 border-slate-900/40 bg-white p-4"
+                  className="w-full overflow-hidden rounded-2xl border-2 border-slate-900/40 bg-white p-4"
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold text-slate-900">
                         {question.label}
@@ -344,7 +344,7 @@ export const Admin = () => {
                         {question.choices[question.correctIndex]}
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex shrink-0 gap-2">
                       <Button variant="outline" onClick={() => handleEdit(question)}>
                         Modifier
                       </Button>
