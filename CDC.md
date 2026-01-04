@@ -11,6 +11,7 @@ Le quiz doit être simple, joli, coloré et facile à utiliser sur téléphone.
 - L’ordre des questions change à chaque quiz pour éviter la triche.
 - L’ordre des réponses change aussi (A/B/C/D mélangé).
 - On choisit une seule réponse à chaque fois.
+- Chaque question peut avoir entre 2 et 4 réponses.
 - Après chaque réponse, on voit tout de suite la bonne réponse.
 - À la fin, on voit :
   - le score (ex : 4/5)
@@ -25,10 +26,11 @@ Le quiz doit être simple, joli, coloré et facile à utiliser sur téléphone.
 ## 3) Leaderboard (classement)
 - On voit les meilleurs résultats.
 - Le classement est trié par score, puis par temps.
-- On affiche : rang, prénom/nom, score, temps.
+- On affiche : rang, prénom/nom, score, temps (pas l’email).
 - Pas besoin d’être admin pour le voir.
 
 ## 4) Côté admin (configuration)
+- Accès protégé par mot de passe.
 - Changer le nom du quiz.
 - Ajouter, modifier, supprimer des questions.
 - Voir les réponses des élèves :

@@ -66,6 +66,12 @@ export const Quiz = () => {
     if (!progress) return null;
     return questionList[progress.currentIndex] || null;
   }, [progress, questionList]);
+  const availableChoices = useMemo(() => {
+    if (!currentQuestion) return [];
+    return currentQuestion.choices
+      .map((choice, index) => ({ choice: choice.trim(), index }))
+      .filter((item) => item.choice.length > 0);
+  }, [currentQuestion]);
 
   const handleSelect = (index: number) => {
     if (!progress || !currentQuestion || showAnswer) return;
@@ -130,29 +136,44 @@ export const Quiz = () => {
             <p className="text-2xl font-semibold text-slate-900 sm:text-3xl">
               {currentQuestion.label}
             </p>
-            {showAnswer ? (
-              <div className="mt-4 space-y-2">
-                <Badge variant={currentQuestion.correctIndex === selectedIndex ? "default" : "destructive"}>
-                  {currentQuestion.correctIndex === selectedIndex
-                    ? "Bonne réponse !"
-                    : "Mauvaise réponse"}
-                </Badge>
-                <p className="text-base font-semibold text-slate-700">
-                  Bonne réponse :{" "}
-                  {currentQuestion.choices[currentQuestion.correctIndex]}
-                </p>
-              </div>
-            ) : null}
+            <div className="mt-4 min-h-[72px] space-y-2">
+              {showAnswer ? (
+                <>
+                  <Badge
+                    variant={
+                      currentQuestion.correctIndex === selectedIndex
+                        ? "default"
+                        : "destructive"
+                    }
+                  >
+                    {currentQuestion.correctIndex === selectedIndex
+                      ? "Bonne réponse !"
+                      : "Mauvaise réponse"}
+                  </Badge>
+                  <p className="text-base font-semibold text-slate-700">
+                    Bonne réponse :{" "}
+                    {currentQuestion.choices[currentQuestion.correctIndex]}
+                  </p>
+                </>
+              ) : (
+                <div className="invisible">
+                  <Badge variant="secondary">Placeholder</Badge>
+                  <p className="text-base font-semibold text-slate-700">
+                    Placeholder
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
           <div className="grid gap-3">
-            {currentQuestion.choices.map((choice, index) => {
-              const isSelected = selectedIndex === index;
-              const isCorrect = currentQuestion.correctIndex === index;
+            {availableChoices.map((item, position) => {
+              const isSelected = selectedIndex === item.index;
+              const isCorrect = currentQuestion.correctIndex === item.index;
               return (
                 <button
-                  key={choice}
+                  key={`${item.index}-${item.choice}`}
                   type="button"
-                  onClick={() => handleSelect(index)}
+                  onClick={() => handleSelect(item.index)}
                   className={cn(
                     "w-full rounded-xl border-2 border-slate-900/60 bg-white px-4 py-3 text-left font-semibold transition",
                     showAnswer && isSelected && isCorrect && "bg-emerald-100",
@@ -162,7 +183,7 @@ export const Quiz = () => {
                   )}
                   disabled={showAnswer}
                 >
-                  {String.fromCharCode(65 + index)}: {choice}
+                  {String.fromCharCode(65 + position)}: {item.choice}
                 </button>
               );
             })}

@@ -22,7 +22,9 @@ router.post("/questions", async (req, res) => {
     !label ||
     !Array.isArray(choices) ||
     choices.length < 2 ||
-    typeof correctIndex !== "number"
+    typeof correctIndex !== "number" ||
+    correctIndex < 0 ||
+    correctIndex >= choices.length
   ) {
     res.status(400).json({ error: "Question invalide" });
     return;
@@ -41,7 +43,9 @@ router.put("/questions/:id", async (req, res) => {
     !label ||
     !Array.isArray(choices) ||
     choices.length < 2 ||
-    typeof correctIndex !== "number"
+    typeof correctIndex !== "number" ||
+    correctIndex < 0 ||
+    correctIndex >= choices.length
   ) {
     res.status(400).json({ error: "Question invalide" });
     return;

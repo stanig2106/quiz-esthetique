@@ -57,6 +57,7 @@ export const Admin = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [formError, setFormError] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [confirmAction, setConfirmAction] = useState<null | (() => void)>(null);
@@ -84,6 +85,7 @@ export const Admin = () => {
   const resetForm = () => {
     setQuestionForm(emptyQuestion);
     setCorrectInput("1");
+    setFormError("");
     setEditingId(null);
   };
 
@@ -94,15 +96,40 @@ export const Admin = () => {
   };
 
   const handleQuestionSubmit = async () => {
-    if (!questionForm.label.trim()) return;
-    if (questionForm.choices.filter(Boolean).length < 2) return;
+    setFormError("");
+    const trimmedChoices = questionForm.choices.map((choice) => choice.trim());
+    const nonEmptyChoices = trimmedChoices.filter((choice) => choice.length > 0);
+    if (!questionForm.label.trim()) {
+      setFormError("La question est obligatoire.");
+      return;
+    }
+    if (nonEmptyChoices.length < 2) {
+      setFormError("Il faut au moins 2 réponses.");
+      return;
+    }
+    const correctNumber = Number(correctInput);
+    if (
+      Number.isNaN(correctNumber) ||
+      correctNumber < 1 ||
+      correctNumber > nonEmptyChoices.length
+    ) {
+      setFormError(
+        "Le numéro de la bonne réponse doit correspondre à une réponse remplie."
+      );
+      return;
+    }
+    const payload = {
+      label: questionForm.label.trim(),
+      choices: nonEmptyChoices,
+      correctIndex: correctNumber - 1,
+    };
 
     if (editingId) {
       setConfirmText(
         "Modifier une question supprimera toutes les tentatives precedentes."
       );
       setConfirmAction(() => async () => {
-        await updateQuestion(editingId, questionForm);
+        await updateQuestion(editingId, payload);
         await loadData();
         resetForm();
       });
@@ -110,17 +137,22 @@ export const Admin = () => {
       return;
     }
 
-    await createQuestion(questionForm);
+    await createQuestion(payload);
     await loadData();
     resetForm();
   };
 
   const handleEdit = (question: Question) => {
+    const paddedChoices = [...question.choices];
+    while (paddedChoices.length < 4) {
+      paddedChoices.push("");
+    }
     setQuestionForm({
       label: question.label,
-      choices: [...question.choices],
+      choices: paddedChoices,
       correctIndex: question.correctIndex,
     });
+    setFormError("");
     setCorrectInput(String(question.correctIndex + 1));
     setEditingId(question.id);
   };
@@ -253,7 +285,7 @@ export const Admin = () => {
                   ))}
                 </div>
                 <div>
-                  <Label>Numéro de la bonne réponse (1-4)</Label>
+                  <Label>Numéro de la bonne réponse</Label>
                   <Input
                     type="number"
                     min={1}
@@ -277,6 +309,11 @@ export const Admin = () => {
                       setCorrectInput(String(clamped));
                     }}
                   />
+                  {formError ? (
+                    <p className="mt-2 text-sm font-semibold text-red-600">
+                      {formError}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="flex flex-wrap gap-3">
                   <Button onClick={handleQuestionSubmit}>
@@ -365,7 +402,7 @@ export const Admin = () => {
                         <DialogTrigger asChild>
                           <Button variant="outline">Détails</Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
+                        <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle>Détail de la réponse</DialogTitle>
                           </DialogHeader>
