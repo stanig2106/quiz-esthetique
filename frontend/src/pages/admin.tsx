@@ -35,6 +35,8 @@ import {
   updateSettings,
   deleteAttempt,
 } from "@/lib/api";
+import { isAdminAuthed } from "@/lib/adminAuth";
+import { formatDuration } from "@/lib/time";
 import type { Attempt, Question, Stats } from "@/types";
 
 const emptyQuestion = {
@@ -44,6 +46,9 @@ const emptyQuestion = {
 };
 
 export const Admin = () => {
+  const handleBackHome = () => {
+    window.location.href = "/";
+  };
   const [appName, setAppName] = useState("");
   const [settingsSaved, setSettingsSaved] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -69,6 +74,10 @@ export const Admin = () => {
   };
 
   useEffect(() => {
+    if (!isAdminAuthed()) {
+      window.location.href = "/";
+      return;
+    }
     loadData().catch(() => null);
   }, []);
 
@@ -142,9 +151,13 @@ export const Admin = () => {
     return [
       { label: "Total de réponses", value: stats.total },
       { label: "Moyenne", value: stats.average.toFixed(2) },
-      { label: "Mediane", value: stats.median.toFixed(2) },
+      { label: "Médiane", value: stats.median.toFixed(2) },
       { label: "Minimum", value: stats.min },
       { label: "Maximum", value: stats.max },
+      {
+        label: "Temps moyen",
+        value: formatDuration(stats.averageDurationMs ?? 0),
+      },
     ];
   }, [stats]);
 
@@ -153,9 +166,15 @@ export const Admin = () => {
     [stats]
   );
 
+
   return (
     <PageShell variant="blue">
       <Frame title="Configuration" subtitle="Espace administrateur">
+        <div className="mb-6 flex justify-center">
+          <Button variant="outline" onClick={handleBackHome}>
+            Retour au quiz
+          </Button>
+        </div>
         <Tabs defaultValue="settings" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="settings">Paramètres</TabsTrigger>
@@ -339,6 +358,9 @@ export const Admin = () => {
                       <Badge variant="secondary">
                         {attempt.score} / {attempt.totalQuestions}
                       </Badge>
+                      <Badge variant="outline">
+                        Temps : {formatDuration(attempt.durationMs)}
+                      </Badge>
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button variant="outline">Détails</Button>
@@ -347,6 +369,9 @@ export const Admin = () => {
                           <DialogHeader>
                             <DialogTitle>Détail de la réponse</DialogTitle>
                           </DialogHeader>
+                          <p className="text-sm font-semibold text-slate-600">
+                            Temps total : {formatDuration(attempt.durationMs)}
+                          </p>
                           <div className="space-y-3">
                             {attempt.questionsSnapshot.map((question, index) => {
                               const answer = attempt.answers[index];

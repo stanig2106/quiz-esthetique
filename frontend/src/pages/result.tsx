@@ -10,6 +10,8 @@ import { saveProgress } from "@/lib/storage";
 import { useQuizData } from "@/lib/useQuizData";
 import { buildScoreImage, shareScoreImage } from "@/lib/share";
 import { useProgress } from "@/lib/useProgress";
+import { formatDuration, getDurationMs } from "@/lib/time";
+import { AdminLink } from "@/components/admin-link";
 import type { QuizAnswer } from "@/types";
 
 const getScore = (answers: QuizAnswer[]) =>
@@ -23,6 +25,11 @@ export const Result = () => {
   const [downloading, setDownloading] = useState(false);
   const score = useMemo(
     () => (progress ? getScore(progress.answers) : 0),
+    [progress]
+  );
+  const durationMs = useMemo(
+    () =>
+      progress ? getDurationMs(progress.startedAt, progress.finishedAt) : null,
     [progress]
   );
 
@@ -51,6 +58,7 @@ export const Result = () => {
           totalQuestions: questions.length,
           answers: progress.answers,
           questionsSnapshot: questions,
+          startedAt: progress.startedAt,
         });
         const updated = { ...progress, submittedAttemptId: response.id };
         setProgress(updated);
@@ -70,6 +78,7 @@ export const Result = () => {
       fullName: `${progress.user.firstName} ${progress.user.lastName}`,
       score,
       total: questions.length,
+      duration: formatDuration(durationMs),
     });
     if (canvas) {
       await shareScoreImage(canvas);
@@ -85,6 +94,7 @@ export const Result = () => {
       fullName: `${progress.user.firstName} ${progress.user.lastName}`,
       score,
       total: questions.length,
+      duration: formatDuration(durationMs),
     });
     if (canvas) {
       const blob = await new Promise<Blob | null>((resolve) =>
@@ -133,6 +143,9 @@ export const Result = () => {
             Score final : {score} / {questions.length}
           </p>
           <p className="text-lg font-semibold text-slate-700">
+            Temps : {formatDuration(durationMs)}
+          </p>
+          <p className="text-lg font-semibold text-slate-700">
             Merci {progress.user.firstName} {progress.user.lastName} !
           </p>
           <div className="flex flex-wrap justify-center gap-4">
@@ -145,6 +158,12 @@ export const Result = () => {
               disabled={downloading}
             >
               {downloading ? "Téléchargement..." : "Télécharger l'image"}
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => window.location.assign("/leaderboard")}
+            >
+              Voir le leaderboard
             </Button>
           </div>
         </div>
@@ -176,6 +195,9 @@ export const Result = () => {
           })}
         </div>
       </Frame>
+      <div className="pointer-events-none fixed top-2 right-6 z-50">
+        <AdminLink />
+      </div>
     </PageShell>
   );
 };

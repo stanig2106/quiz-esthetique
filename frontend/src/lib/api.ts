@@ -64,6 +64,7 @@ export const createAttempt = (payload: {
   totalQuestions: number;
   answers: unknown[];
   questionsSnapshot: Question[];
+  startedAt?: string;
 }) =>
   request<{ id: number; createdAt: string }>("/attempts", {
     method: "POST",
@@ -80,3 +81,9 @@ export const getAttemptByEmail = (email: string) =>
 
 export const deleteAttempt = (id: number) =>
   request<{ ok: boolean }>(`/attempts/${id}`, { method: "DELETE" });
+
+export const adminLogin = (password: string) =>
+  request<{ ok: boolean }>("/admin/login", {
+    method: "POST",
+    body: JSON.stringify({ password }),
+  });

@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { saveProgress } from "@/lib/storage";
 import { useQuizData } from "@/lib/useQuizData";
 import { useProgress } from "@/lib/useProgress";
+import { formatDuration, getDurationMs } from "@/lib/time";
 import type { Question, QuizAnswer } from "@/types";
 
 export const Quiz = () => {
@@ -16,6 +17,7 @@ export const Quiz = () => {
   const { progress, setProgress } = useProgress();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [elapsedMs, setElapsedMs] = useState<number | null>(null);
 
   useEffect(() => {
     if (!progress) {
@@ -35,6 +37,16 @@ export const Quiz = () => {
     }
     saveProgress(progress);
   }, [progress, setProgress, showAnswer]);
+
+  useEffect(() => {
+    if (!progress?.startedAt) return;
+    const update = () => {
+      setElapsedMs(getDurationMs(progress.startedAt));
+    };
+    update();
+    const id = window.setInterval(update, 1000);
+    return () => window.clearInterval(id);
+  }, [progress?.startedAt]);
 
   const currentQuestion = useMemo<Question | null>(() => {
     if (!progress) return null;
@@ -62,7 +74,8 @@ export const Quiz = () => {
     if (!progress) return;
     const nextIndex = progress.currentIndex + 1;
     if (nextIndex >= questions.length) {
-      setProgress({ ...progress, currentIndex: nextIndex });
+      const finishedAt = progress.finishedAt || new Date().toISOString();
+      setProgress({ ...progress, currentIndex: nextIndex, finishedAt });
       navigate("/result");
       return;
     }
@@ -143,9 +156,14 @@ export const Quiz = () => {
         </div>
 
         <div className="mt-8 flex items-center justify-between">
-          <Badge variant="secondary">
-            {number} / {questions.length}
-          </Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary">
+              {number} / {questions.length}
+            </Badge>
+            <Badge variant="secondary">
+              Temps : {formatDuration(elapsedMs)}
+            </Badge>
+          </div>
           <Button onClick={handleNext} disabled={!showAnswer}>
             {number === questions.length ? "Voir le score" : "Suivant"}
           </Button>

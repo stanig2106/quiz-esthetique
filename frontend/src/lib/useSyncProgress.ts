@@ -27,7 +27,8 @@ export const useSyncProgress = () => {
           },
           answers: attempt.answers,
           currentIndex: attempt.answers.length,
-          startedAt: attempt.createdAt,
+          startedAt: attempt.startedAt || attempt.createdAt,
+          finishedAt: attempt.finishedAt || attempt.createdAt,
           submittedAttemptId: attempt.id,
         });
       } catch {

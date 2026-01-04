@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { saveProgress } from "@/lib/storage";
 import { useQuizData } from "@/lib/useQuizData";
 import { useProgress } from "@/lib/useProgress";
+import { AdminLink } from "@/components/admin-link";
 import type { QuizUser } from "@/types";
 
 export const Landing = () => {
@@ -141,6 +142,9 @@ export const Landing = () => {
           ) : null}
         </div>
       </Frame>
+      <div className="pointer-events-none fixed top-2 right-6 z-50">
+        <AdminLink />
+      </div>
     </PageShell>
   );
 };

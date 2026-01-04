@@ -3,11 +3,13 @@ export const buildScoreImage = async ({
   fullName,
   score,
   total,
+  duration,
 }: {
   appName: string;
   fullName: string;
   score: number;
   total: number;
+  duration?: string;
 }) => {
   const canvas = document.createElement("canvas");
   canvas.width = 1080;
@@ -51,8 +53,13 @@ export const buildScoreImage = async ({
   ctx.font = "48px Nunito, sans-serif";
   ctx.fillText(fullName, 540, 840);
 
+  if (duration) {
+    ctx.font = "44px Nunito, sans-serif";
+    ctx.fillText(`Temps : ${duration}`, 540, 920);
+  }
+
   ctx.font = "40px Nunito, sans-serif";
-  ctx.fillText("Merci d'avoir participé !", 540, 980);
+  ctx.fillText("Merci d'avoir participé !", 540, 1040);
 
   return canvas;
 };

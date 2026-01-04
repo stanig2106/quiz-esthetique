@@ -23,6 +23,7 @@ export type QuizProgress = {
   currentIndex: number;
   answers: QuizAnswer[];
   startedAt: string;
+  finishedAt?: string;
   submittedAttemptId?: number;
 };
 
@@ -35,6 +36,9 @@ export type Attempt = {
   totalQuestions: number;
   answers: QuizAnswer[];
   questionsSnapshot: Question[];
+  startedAt?: string | null;
+  finishedAt?: string | null;
+  durationMs?: number | null;
   createdAt: string;
 };
 
@@ -44,5 +48,6 @@ export type Stats = {
   median: number;
   min: number;
   max: number;
+  averageDurationMs?: number;
   distribution: Record<string, number>;
 };

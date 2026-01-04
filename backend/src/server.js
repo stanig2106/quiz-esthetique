@@ -74,9 +74,24 @@ const initDb = async () => {
       total_questions INTEGER NOT NULL,
       answers_json TEXT NOT NULL,
       questions_json TEXT NOT NULL,
+      started_at TEXT,
+      finished_at TEXT,
+      duration_ms INTEGER,
       created_at TEXT NOT NULL
     )
   `);
+
+  const attemptColumns = await all("PRAGMA table_info(attempts)");
+  const hasColumn = (name) => attemptColumns.some((col) => col.name === name);
+  if (!hasColumn("started_at")) {
+    await run("ALTER TABLE attempts ADD COLUMN started_at TEXT");
+  }
+  if (!hasColumn("finished_at")) {
+    await run("ALTER TABLE attempts ADD COLUMN finished_at TEXT");
+  }
+  if (!hasColumn("duration_ms")) {
+    await run("ALTER TABLE attempts ADD COLUMN duration_ms INTEGER");
+  }
 
   const settingsCount = await get(
     "SELECT COUNT(*) as count FROM settings"
@@ -140,6 +155,8 @@ const clearAttempts = async () => {
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
+
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "lundi";
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
@@ -227,6 +244,7 @@ app.post("/api/attempts", async (req, res) => {
     totalQuestions,
     answers,
     questionsSnapshot,
+    startedAt,
   } = req.body || {};
 
   if (
@@ -245,11 +263,17 @@ app.post("/api/attempts", async (req, res) => {
   await run("DELETE FROM attempts WHERE user_email = ?", [userEmail]);
 
   const createdAt = new Date().toISOString();
+  const finishedAt = createdAt;
+  const startedAtDate = startedAt ? new Date(startedAt) : null;
+  const durationMs =
+    startedAtDate && !Number.isNaN(startedAtDate.getTime())
+      ? Math.max(0, new Date(finishedAt).getTime() - startedAtDate.getTime())
+      : null;
   const result = await run(
     `
       INSERT INTO attempts
-      (user_first_name, user_last_name, user_email, score, total_questions, answers_json, questions_json, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      (user_first_name, user_last_name, user_email, score, total_questions, answers_json, questions_json, started_at, finished_at, duration_ms, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     [
       userFirstName,
@@ -259,10 +283,13 @@ app.post("/api/attempts", async (req, res) => {
       totalQuestions,
       JSON.stringify(answers),
       JSON.stringify(questionsSnapshot),
+      startedAtDate ? startedAtDate.toISOString() : null,
+      finishedAt,
+      durationMs,
       createdAt,
     ]
   );
-  res.json({ id: result.lastID, createdAt });
+  res.json({ id: result.lastID, createdAt, finishedAt, durationMs });
 });
 
 app.get("/api/attempts/by-email", async (req, res) => {
@@ -274,7 +301,7 @@ app.get("/api/attempts/by-email", async (req, res) => {
 
   const row = await get(
     `
-      SELECT id, user_first_name, user_last_name, user_email, score, total_questions, answers_json, questions_json, created_at
+      SELECT id, user_first_name, user_last_name, user_email, score, total_questions, answers_json, questions_json, started_at, finished_at, duration_ms, created_at
       FROM attempts
       WHERE user_email = ?
       ORDER BY created_at DESC
@@ -298,6 +325,9 @@ app.get("/api/attempts/by-email", async (req, res) => {
       totalQuestions: row.total_questions,
       answers: JSON.parse(row.answers_json),
       questionsSnapshot: JSON.parse(row.questions_json),
+      startedAt: row.started_at,
+      finishedAt: row.finished_at,
+      durationMs: row.duration_ms,
       createdAt: row.created_at,
     },
   });
@@ -306,9 +336,9 @@ app.get("/api/attempts/by-email", async (req, res) => {
 app.get("/api/attempts", async (_req, res) => {
   const rows = await all(
     `
-      SELECT id, user_first_name, user_last_name, user_email, score, total_questions, answers_json, questions_json, created_at
+      SELECT id, user_first_name, user_last_name, user_email, score, total_questions, answers_json, questions_json, started_at, finished_at, duration_ms, created_at
       FROM attempts
-      ORDER BY created_at DESC
+      ORDER BY duration_ms IS NULL, duration_ms ASC, created_at DESC
     `
   );
   const attempts = rows.map((row) => ({
@@ -320,6 +350,9 @@ app.get("/api/attempts", async (_req, res) => {
     totalQuestions: row.total_questions,
     answers: JSON.parse(row.answers_json),
     questionsSnapshot: JSON.parse(row.questions_json),
+    startedAt: row.started_at,
+    finishedAt: row.finished_at,
+    durationMs: row.duration_ms,
     createdAt: row.created_at,
   }));
 
@@ -336,6 +369,14 @@ app.get("/api/attempts", async (_req, res) => {
   const min = total === 0 ? 0 : scores[0];
   const max = total === 0 ? 0 : scores[total - 1];
 
+  const durations = attempts
+    .map((attempt) => attempt.durationMs)
+    .filter((value) => typeof value === "number");
+  const averageDurationMs =
+    durations.length === 0
+      ? 0
+      : durations.reduce((sum, value) => sum + value, 0) / durations.length;
+
   const distribution = attempts.reduce((acc, attempt) => {
     const key = `${attempt.score}/${attempt.totalQuestions}`;
     acc[key] = (acc[key] || 0) + 1;
@@ -350,6 +391,7 @@ app.get("/api/attempts", async (_req, res) => {
       median,
       min,
       max,
+      averageDurationMs,
       distribution,
     },
   });
@@ -358,6 +400,15 @@ app.get("/api/attempts", async (_req, res) => {
 app.delete("/api/attempts/:id", async (req, res) => {
   const { id } = req.params;
   await run("DELETE FROM attempts WHERE id = ?", [id]);
+  res.json({ ok: true });
+});
+
+app.post("/api/admin/login", (req, res) => {
+  const { password } = req.body || {};
+  if (password !== ADMIN_PASSWORD) {
+    res.status(401).json({ ok: false });
+    return;
+  }
   res.json({ ok: true });
 });
 
