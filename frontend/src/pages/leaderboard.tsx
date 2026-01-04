@@ -6,11 +6,13 @@ import { Separator } from "@/components/ui/separator";
 import { getAttempts } from "@/lib/api";
 import { formatDuration } from "@/lib/time";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { Attempt } from "@/types";
 
 export const Leaderboard = () => {
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const load = async () => {
@@ -38,7 +40,7 @@ export const Leaderboard = () => {
     <PageShell variant="blue">
       <Frame title="Leaderboard" subtitle="Les meilleurs scores">
         <div className="flex justify-center">
-          <Button variant="outline" onClick={() => window.history.back()}>
+          <Button variant="outline" onClick={() => navigate("/result")}>
             Retour
           </Button>
         </div>
