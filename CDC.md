@@ -8,6 +8,8 @@ Le quiz doit être simple, joli, coloré et facile à utiliser sur téléphone.
 - On arrive sur une page d’accueil où on met prénom, nom et email.
 - On clique sur “Commencer le quiz”.
 - Les questions s’affichent une par une.
+- L’ordre des questions change à chaque quiz pour éviter la triche.
+- L’ordre des réponses change aussi (A/B/C/D mélangé).
 - On choisit une seule réponse à chaque fois.
 - Après chaque réponse, on voit tout de suite la bonne réponse.
 - À la fin, on voit :

@@ -25,6 +25,7 @@ export type QuizProgress = {
   startedAt: string;
   finishedAt?: string;
   submittedAttemptId?: number;
+  questionsSnapshot?: Question[];
 };
 
 export type Attempt = {

@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { saveProgress } from "@/lib/storage";
 import { useQuizData } from "@/lib/useQuizData";
 import { useProgress } from "@/lib/useProgress";
+import { shuffleQuestions } from "@/lib/shuffle";
 import { formatDuration, getDurationMs } from "@/lib/time";
 import type { Question, QuizAnswer } from "@/types";
 
@@ -18,16 +19,20 @@ export const Quiz = () => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [showAnswer, setShowAnswer] = useState(false);
   const [elapsedMs, setElapsedMs] = useState<number | null>(null);
+  const questionList = progress?.questionsSnapshot ?? questions;
 
   useEffect(() => {
     if (!progress) {
       navigate("/");
       return;
     }
-    if (questions.length > 0 && progress.currentIndex >= questions.length) {
+    if (
+      questionList.length > 0 &&
+      progress.currentIndex >= questionList.length
+    ) {
       navigate("/result");
     }
-  }, [navigate, progress, questions.length]);
+  }, [navigate, progress, questionList.length]);
 
   useEffect(() => {
     if (!progress) return;
@@ -48,10 +53,19 @@ export const Quiz = () => {
     return () => window.clearInterval(id);
   }, [progress?.startedAt]);
 
+  useEffect(() => {
+    if (!progress || progress.questionsSnapshot) return;
+    if (questions.length === 0) return;
+    setProgress({
+      ...progress,
+      questionsSnapshot: shuffleQuestions(questions),
+    });
+  }, [progress, questions, setProgress]);
+
   const currentQuestion = useMemo<Question | null>(() => {
     if (!progress) return null;
-    return questions[progress.currentIndex] || null;
-  }, [progress, questions]);
+    return questionList[progress.currentIndex] || null;
+  }, [progress, questionList]);
 
   const handleSelect = (index: number) => {
     if (!progress || !currentQuestion || showAnswer) return;
@@ -73,7 +87,7 @@ export const Quiz = () => {
   const handleNext = () => {
     if (!progress) return;
     const nextIndex = progress.currentIndex + 1;
-    if (nextIndex >= questions.length) {
+    if (nextIndex >= questionList.length) {
       const finishedAt = progress.finishedAt || new Date().toISOString();
       setProgress({ ...progress, currentIndex: nextIndex, finishedAt });
       navigate("/result");
@@ -158,14 +172,14 @@ export const Quiz = () => {
         <div className="mt-8 flex items-center justify-between">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary">
-              {number} / {questions.length}
+            {number} / {questionList.length}
             </Badge>
             <Badge variant="secondary">
               Temps : {formatDuration(elapsedMs)}
             </Badge>
           </div>
           <Button onClick={handleNext} disabled={!showAnswer}>
-            {number === questions.length ? "Voir le score" : "Suivant"}
+            {number === questionList.length ? "Voir le score" : "Suivant"}
           </Button>
         </div>
       </Frame>

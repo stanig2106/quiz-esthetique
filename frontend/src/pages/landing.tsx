@@ -10,6 +10,7 @@ import { saveProgress } from "@/lib/storage";
 import { useQuizData } from "@/lib/useQuizData";
 import { useProgress } from "@/lib/useProgress";
 import { AdminLink } from "@/components/admin-link";
+import { shuffleQuestions } from "@/lib/shuffle";
 import type { QuizUser } from "@/types";
 
 export const Landing = () => {
@@ -23,10 +24,10 @@ export const Landing = () => {
     email: existing?.user.email || "",
   });
 
+  const totalQuestions =
+    existing?.questionsSnapshot?.length ?? questions.length;
   const isComplete = Boolean(
-    existing &&
-      questions.length > 0 &&
-      existing.answers.length >= questions.length
+    existing && totalQuestions > 0 && existing.answers.length >= totalQuestions
   );
   const canResume = Boolean(
     existing && existing.answers.length > 0 && !isComplete
@@ -35,11 +36,14 @@ export const Landing = () => {
 
   const handleStart = () => {
     if (!form.firstName || !form.lastName || !form.email) return;
+    if (questions.length === 0) return;
+    const questionsSnapshot = shuffleQuestions(questions);
     const progress = {
       user: form,
       currentIndex: 0,
       answers: [],
       startedAt: new Date().toISOString(),
+      questionsSnapshot,
     };
     saveProgress(progress);
     navigate("/rules");

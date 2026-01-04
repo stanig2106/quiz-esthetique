@@ -23,6 +23,7 @@ export const Result = () => {
   const { progress, setProgress } = useProgress();
   const [sharing, setSharing] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const questionList = progress?.questionsSnapshot ?? questions;
   const score = useMemo(
     () => (progress ? getScore(progress.answers) : 0),
     [progress]
@@ -46,7 +47,8 @@ export const Result = () => {
   useEffect(() => {
     if (!progress || loading || error) return;
     if (progress.submittedAttemptId) return;
-    if (progress.answers.length !== questions.length) return;
+    if (questionList.length === 0) return;
+    if (progress.answers.length !== questionList.length) return;
 
     const submit = async () => {
       try {
@@ -55,9 +57,9 @@ export const Result = () => {
           userLastName: progress.user.lastName,
           userEmail: progress.user.email,
           score,
-          totalQuestions: questions.length,
+          totalQuestions: questionList.length,
           answers: progress.answers,
-          questionsSnapshot: questions,
+          questionsSnapshot: questionList,
           startedAt: progress.startedAt,
         });
         const updated = { ...progress, submittedAttemptId: response.id };
@@ -77,7 +79,7 @@ export const Result = () => {
       appName,
       fullName: `${progress.user.firstName} ${progress.user.lastName}`,
       score,
-      total: questions.length,
+      total: questionList.length,
       duration: formatDuration(durationMs),
     });
     if (canvas) {
@@ -93,7 +95,7 @@ export const Result = () => {
       appName,
       fullName: `${progress.user.firstName} ${progress.user.lastName}`,
       score,
-      total: questions.length,
+      total: questionList.length,
       duration: formatDuration(durationMs),
     });
     if (canvas) {
@@ -140,7 +142,7 @@ export const Result = () => {
       <Frame title="Bien joué !" subtitle="Tu as terminé le quiz">
         <div className="space-y-6 text-center">
           <p className="text-3xl font-semibold text-slate-900">
-            Score final : {score} / {questions.length}
+            Score final : {score} / {questionList.length}
           </p>
           <p className="text-lg font-semibold text-slate-700">
             Temps : {formatDuration(durationMs)}
@@ -171,7 +173,7 @@ export const Result = () => {
         <Separator className="my-8" />
 
         <div className="grid gap-4">
-          {questions.map((question, index) => {
+          {questionList.map((question, index) => {
             const answer = progress.answers[index];
             const selectedLabel = answer
               ? question.choices[answer.selectedIndex]
