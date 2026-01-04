@@ -335,11 +335,11 @@ export const Admin = () => {
                   className="rounded-2xl border-2 border-slate-900/40 bg-white p-4"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div>
-                      <p className="font-semibold text-slate-900">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-slate-900">
                         {question.label}
                       </p>
-                      <p className="text-sm text-slate-600">
+                      <p className="truncate text-sm text-slate-600">
                         Bonne réponse :{" "}
                         {question.choices[question.correctIndex]}
                       </p>
